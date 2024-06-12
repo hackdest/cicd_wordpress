@@ -23,9 +23,9 @@ jobs:
           wget -O classic-editor.zip https://downloads.wordpress.org/plugin/classic-editor.latest-stable.zip
           unzip classic-editor.zip
 
-      # Cài đặt dependencies
-      - name: Install Classic Editor plugin
-        run: |
-          wp plugin install classic-editor --activate
+      # # Cài đặt dependencies
+      # - name: Install Classic Editor plugin
+      #   run: |
+      #     wp plugin install classic-editor --activate
 
       # ... (Các bước khác cho project WordPress của bạn)
