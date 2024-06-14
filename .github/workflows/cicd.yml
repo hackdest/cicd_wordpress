@@ -1,4 +1,4 @@
-name: PHP WordPress CI/CD with Docker Compose
+name: WordPress CI/CD
 
 on:
   push:
@@ -8,43 +8,43 @@ on:
     branches:
       - main
 
-permissions:
-  contents: read
-  packages: write
-
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
     services:
-      # Replace with the path to your docker-compose.yml file on your runner
-      - image: docker/compose:v2
-        volumes:
-          - ./docker-compose.yml:/app/docker-compose.yml  # Adjust the path if needed
-        command:
-          - docker-compose
-          - up
-          - -d  # Run services in detached mode
+      mysql:
+        image: mysql:5.7
+        options: --health-cmd="mysqladmin ping --silent" --health-interval=10s --health-timeout=5s --health-retries=3
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: w
+        ports:
+          - 3306:3306
 
     steps:
-      - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      # Setup PHP (consider using `actions/setup-php` for specific versions and extensions)
-      - name: Setup PHP (example)
-        run: |
-          sudo apt install php
-          sudo apt install php-mysqli php-xml php-curl zip unzip  # Example extensions
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.4'
+        extensions: mbstring, mysqli, intl, xml, curl, json, ctype, token_get_all, fileinfo
+        ini-values: post_max_size=256M, upload_max_filesize=256M, memory_limit=512M
+        coverage: none
 
-      # Install dependencies (consider `composer install` if using Composer)
-      - name: Install Composer dependencies (example)
-        run: composer install
+    - name: Install Composer dependencies
+      run: composer install --no-progress --prefer-dist
 
-      # ... (Other build steps for your project, e.g., code quality checks, tests)
+    - name: Copy wp-config.php
+      run: cp wp-config-sample.php wp-config.php
 
-      # Install WordPress (optional, can be done within the container using wp-cli)
-      - name: Install WordPress (optional)
-        run: |
-          docker-compose exec wordpress wp core install --url=http://localhost:8088 --title="My WordPress Site" --admin_user=<YOUR_ADMIN_USERNAME> --admin_password=<YOUR_ADMIN_PASSWORD> --admin_email=<YOUR_ADMIN_EMAIL>
-
-      # Additional steps specific to your WordPress project
-      # ..
+    - name: Update wp-config.php
+      run: |
+        sed -i "s/database_name_here/wordpress_test/" wp-config.php
+        sed -i "s/username_here/root/" wp-config.php
+        sed -i "s/password_here/root/" wp-config.php
+        echo "define('WP_DEBUG', true);" >> wp-config.php
+        echo "define('WP_DEBUG_LOG', true);" >> wp-config.php
