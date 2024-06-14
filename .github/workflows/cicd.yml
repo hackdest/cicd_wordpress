@@ -48,4 +48,4 @@ jobs:
           docker-compose exec wordpress wp core install --url=http://localhost:8088 --title="My WordPress Site" --admin_user=<YOUR_ADMIN_USERNAME> --admin_password=<YOUR_ADMIN_PASSWORD> --admin_email=<YOUR_ADMIN_EMAIL>
 
       # Additional steps specific to your WordPress project
-      # ...
+      # ..
