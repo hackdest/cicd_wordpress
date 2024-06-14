@@ -1,0 +1,51 @@
+name: PHP WordPress CI/CD with Docker Compose
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    services:
+      # Replace with the path to your docker-compose.yml file on your runner
+      - image: docker/compose:v2
+        volumes:
+          - ./docker-compose.yml:/app/docker-compose.yml  # Adjust the path if needed
+        command:
+          - docker-compose
+          - up
+          - -d  # Run services in detached mode
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Setup PHP (consider using `actions/setup-php` for specific versions and extensions)
+      - name: Setup PHP (example)
+        run: |
+          sudo apt install php
+          sudo apt install php-mysqli php-xml php-curl zip unzip  # Example extensions
+
+      # Install dependencies (consider `composer install` if using Composer)
+      - name: Install Composer dependencies (example)
+        run: composer install
+
+      # ... (Other build steps for your project, e.g., code quality checks, tests)
+
+      # Install WordPress (optional, can be done within the container using wp-cli)
+      - name: Install WordPress (optional)
+        run: |
+          docker-compose exec wordpress wp core install --url=http://localhost:8088 --title="My WordPress Site" --admin_user=<YOUR_ADMIN_USERNAME> --admin_password=<YOUR_ADMIN_PASSWORD> --admin_email=<YOUR_ADMIN_EMAIL>
+
+      # Additional steps specific to your WordPress project
+      # ...
