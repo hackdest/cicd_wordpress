@@ -1,0 +1,44 @@
+name: WordPress CI/CD with Docker Compose
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    services:
+      # Replace with the path to your docker-compose.yml file on your runner
+      - image: docker/compose:v2
+        volumes:
+          - ./docker-compose.yml:/app/docker-compose.yml  # Adjust the path if needed
+        command:
+          - docker-compose
+          - up
+          - -d  # Run services in detached mode
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          extensions: mbstring, mysqli, intl, xml, curl, json, ctype, token_get_all, fileinfo
+          ini-values: post_max_size=256M, upload_max_filesize=256M, memory_limit=512M
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-progress --prefer-dist
+
+      # ... rest of your build steps ...
+
+      # Install WordPress (optional, can be done within the container using wp-cli)
+
